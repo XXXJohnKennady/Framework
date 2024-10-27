@@ -153,8 +153,11 @@
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
+        console.log("Firebase initialized");
+
         // Display sections and sites from Firestore
         function displaySections() {
+            console.log("Displaying sections...");
             const sectionsContainer = document.getElementById('sectionsContainer');
             const sectionSelect = document.getElementById('sectionSelect');
             sectionsContainer.innerHTML = '';
@@ -162,6 +165,7 @@
 
             db.collection("sections").get().then((querySnapshot) => {
                 querySnapshot.forEach((doc) => {
+                    console.log("Section loaded:", doc.id);
                     const sectionData = doc.data();
                     const sectionName = doc.id;
                     const sites = sectionData.sites || [];
@@ -181,7 +185,8 @@
                     const siteList = document.createElement('div');
                     siteList.className = 'site-list';
 
-                    sites.forEach((site, index) => {
+                    sites.forEach((site) => {
+                        console.log("Site loaded:", site.name);
                         const siteItem = document.createElement('div');
                         siteItem.className = 'site-item';
 
@@ -204,16 +209,23 @@
                     option.textContent = sectionName;
                     sectionSelect.appendChild(option);
                 });
-            });
+            }).catch((error) => console.error("Error loading sections:", error));
         }
 
         // Add new section to Firestore
         function addSection() {
             const sectionName = document.getElementById('sectionName').value.trim();
             if (sectionName) {
-                db.collection("sections").doc(sectionName).set({ sites: [] });
-                document.getElementById('sectionName').value = '';
-                displaySections();
+                console.log("Adding section:", sectionName);
+                db.collection("sections").doc(sectionName).set({ sites: [] })
+                .then(() => {
+                    console.log("Section added:", sectionName);
+                    document.getElementById('sectionName').value = '';
+                    displaySections();
+                })
+                .catch((error) => console.error("Error adding section:", error));
+            } else {
+                console.error("Section name is empty.");
             }
         }
 
@@ -224,13 +236,20 @@
             const siteURL = document.getElementById('siteURL').value.trim();
 
             if (sectionName && siteName && siteURL) {
+                console.log("Adding site:", siteName, "to section:", sectionName);
                 const sectionRef = db.collection("sections").doc(sectionName);
                 sectionRef.update({
                     sites: firebase.firestore.FieldValue.arrayUnion({ name: siteName, url: siteURL })
-                });
-                document.getElementById('siteName').value = '';
-                document.getElementById('siteURL').value = '';
-                displaySections();
+                })
+                .then(() => {
+                    console.log("Site added:", siteName);
+                    document.getElementById('siteName').value = '';
+                    document.getElementById('siteURL').value = '';
+                    displaySections();
+                })
+                .catch((error) => console.error("Error adding site:", error));
+            } else {
+                console.error("Missing fields for adding site.");
             }
         }
 
