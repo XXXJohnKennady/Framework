@@ -44,3 +44,16 @@ function removeSite(index) {
 }
 
 displaySites();
+function addSite() {
+    console.log("Add button clicked"); // Debug line
+    const siteName = document.getElementById('siteName').value.trim();
+    const siteURL = document.getElementById('siteURL').value.trim();
+    
+    if (siteName && siteURL) {
+        sites.push({ name: siteName, url: siteURL });
+        localStorage.setItem('sites', JSON.stringify(sites));
+        document.getElementById('siteName').value = '';
+        document.getElementById('siteURL').value = '';
+        displaySites();
+    }
+}
