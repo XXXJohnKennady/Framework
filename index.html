@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Favorite Sites Manager</title>
     <style>
-        /* Global Styles */
+        /* Basic styling for dark mode and layout */
         * {
             margin: 0;
             padding: 0;
@@ -40,8 +40,6 @@
             color: #ffbb33;
             margin-bottom: 10px;
         }
-
-        /* Add Site Section */
         .add-section, .add-site {
             background-color: #333;
             padding: 15px;
@@ -69,8 +67,6 @@
         button:hover {
             background-color: #e6a30d;
         }
-
-        /* Site List Section */
         .section {
             background-color: #333;
             border-radius: 5px;
@@ -137,107 +133,111 @@
         <div id="sectionsContainer"></div>
     </div>
 
-    <script>
-        // Retrieve or initialize sections
-        let sections = JSON.parse(localStorage.getItem('sections')) || {};
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.8/firebase-firestore.js"></script>
 
-        // Display sections and sites
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyALWoSEBaDxgS6yXVOEeWW78vSyardSsVs",
+            authDomain: "framework-d30d0.firebaseapp.com",
+            projectId: "framework-d30d0",
+            storageBucket: "framework-d30d0.appspot.com",
+            messagingSenderId: "709455117258",
+            appId: "1:709455117258:web:2df412c6c108e64021ad33",
+            measurementId: "G-F54K7QW3ZF"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Display sections and sites from Firestore
         function displaySections() {
             const sectionsContainer = document.getElementById('sectionsContainer');
             const sectionSelect = document.getElementById('sectionSelect');
             sectionsContainer.innerHTML = '';
             sectionSelect.innerHTML = '';
 
-            Object.keys(sections).forEach(section => {
-                // Create collapsible section title
-                const sectionDiv = document.createElement('div');
-                sectionDiv.className = 'section';
+            db.collection("sections").get().then((querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    const sectionData = doc.data();
+                    const sectionName = doc.id;
+                    const sites = sectionData.sites || [];
 
-                const titleDiv = document.createElement('div');
-                titleDiv.className = 'section-title';
-                titleDiv.textContent = section;
-                titleDiv.onclick = () => {
-                    const siteList = titleDiv.nextElementSibling;
-                    siteList.style.display = siteList.style.display === 'none' ? 'block' : 'none';
-                };
+                    // Create section UI
+                    const sectionDiv = document.createElement('div');
+                    sectionDiv.className = 'section';
 
-                // Create site list container
-                const siteList = document.createElement('div');
-                siteList.className = 'site-list';
+                    const titleDiv = document.createElement('div');
+                    titleDiv.className = 'section-title';
+                    titleDiv.textContent = sectionName;
+                    titleDiv.onclick = () => {
+                        const siteList = titleDiv.nextElementSibling;
+                        siteList.style.display = siteList.style.display === 'none' ? 'block' : 'none';
+                    };
 
-                // Populate sites within section
-                sections[section].forEach((site, index) => {
-                    const siteItem = document.createElement('div');
-                    siteItem.className = 'site-item';
+                    const siteList = document.createElement('div');
+                    siteList.className = 'site-list';
 
-                    const link = document.createElement('a');
-                    link.href = site.url;
-                    link.target = '_blank';
-                    link.textContent = site.name;
-                    link.className = 'site-link';
+                    sites.forEach((site, index) => {
+                        const siteItem = document.createElement('div');
+                        siteItem.className = 'site-item';
 
-                    const removeBtn = document.createElement('button');
-                    removeBtn.className = 'remove-btn';
-                    removeBtn.textContent = 'Remove';
-                    removeBtn.onclick = () => removeSite(section, index);
+                        const link = document.createElement('a');
+                        link.href = site.url;
+                        link.target = '_blank';
+                        link.textContent = site.name;
+                        link.className = 'site-link';
 
-                    siteItem.appendChild(link);
-                    siteItem.appendChild(removeBtn);
-                    siteList.appendChild(siteItem);
+                        siteItem.appendChild(link);
+                        siteList.appendChild(siteItem);
+                    });
+
+                    sectionDiv.appendChild(titleDiv);
+                    sectionDiv.appendChild(siteList);
+                    sectionsContainer.appendChild(sectionDiv);
+
+                    const option = document.createElement('option');
+                    option.value = sectionName;
+                    option.textContent = sectionName;
+                    sectionSelect.appendChild(option);
                 });
-
-                sectionDiv.appendChild(titleDiv);
-                sectionDiv.appendChild(siteList);
-                sectionsContainer.appendChild(sectionDiv);
-
-                // Add section to dropdown list for new links
-                const option = document.createElement('option');
-                option.value = section;
-                option.textContent = section;
-                sectionSelect.appendChild(option);
             });
-
-            localStorage.setItem('sections', JSON.stringify(sections));
         }
 
-        // Add new section
+        // Add new section to Firestore
         function addSection() {
             const sectionName = document.getElementById('sectionName').value.trim();
-            if (sectionName && !sections[sectionName]) {
-                sections[sectionName] = [];
+            if (sectionName) {
+                db.collection("sections").doc(sectionName).set({ sites: [] });
                 document.getElementById('sectionName').value = '';
                 displaySections();
-            } else {
-                alert('Please enter a unique section name.');
             }
         }
 
-        // Add new site to selected section
+        // Add new site to a section
         function addSite() {
+            const sectionName = document.getElementById('sectionSelect').value;
             const siteName = document.getElementById('siteName').value.trim();
             const siteURL = document.getElementById('siteURL').value.trim();
-            const sectionName = document.getElementById('sectionSelect').value;
 
-            if (siteName && siteURL && sectionName) {
-                sections[sectionName].push({ name: siteName, url: siteURL });
+            if (sectionName && siteName && siteURL) {
+                const sectionRef = db.collection("sections").doc(sectionName);
+                sectionRef.update({
+                    sites: firebase.firestore.FieldValue.arrayUnion({ name: siteName, url: siteURL })
+                });
                 document.getElementById('siteName').value = '';
                 document.getElementById('siteURL').value = '';
                 displaySections();
-            } else {
-                alert("Please fill out all fields.");
             }
         }
 
-        // Remove site from a section
-        function removeSite(section, index) {
-            sections[section].splice(index, 1);
-            displaySections();
-        }
-
-        // Initial display and event listeners
-        document.getElementById('addButton').addEventListener('click', addSite);
         document.getElementById('addSectionButton').addEventListener('click', addSection);
-        displaySections();
+        document.getElementById('addButton').addEventListener('click', addSite);
+
+        displaySections(); // Initial display of sections and sites
     </script>
 </body>
 </html>
