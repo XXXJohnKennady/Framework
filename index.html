@@ -18,8 +18,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            min-height: 100vh;
         }
         header {
             width: 100%;
@@ -43,7 +42,7 @@
         }
 
         /* Add Site Section */
-        .add-site {
+        .add-section, .add-site {
             background-color: #333;
             padding: 15px;
             border-radius: 5px;
@@ -72,10 +71,22 @@
         }
 
         /* Site List Section */
-        .site-list {
+        .section {
             background-color: #333;
-            padding: 15px;
             border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .section-title {
+            padding: 10px;
+            cursor: pointer;
+            background-color: #444;
+            color: #ffbb33;
+            font-weight: bold;
+            border-bottom: 2px solid #555;
+        }
+        .site-list {
+            display: none;
+            padding: 10px;
         }
         .site-item {
             display: flex;
@@ -111,75 +122,122 @@
         <h1>Favorite Sites Manager</h1>
     </header>
     <div class="container">
+        <section class="add-section">
+            <h2>Add New Section</h2>
+            <input type="text" id="sectionName" placeholder="Section Name" />
+            <button id="addSectionButton">Add Section</button>
+        </section>
         <section class="add-site">
             <h2>Add New Link</h2>
+            <select id="sectionSelect"></select>
             <input type="text" id="siteName" placeholder="Website Name" />
             <input type="url" id="siteURL" placeholder="https://example.com" />
-            <button id="addButton">Add</button>
+            <button id="addButton">Add Site</button>
         </section>
-        <section id="siteList" class="site-list">
-            <h2>Favorite Sites</h2>
-        </section>
+        <div id="sectionsContainer"></div>
     </div>
 
     <script>
-        // Get stored sites or start with an empty array
-        let sites = JSON.parse(localStorage.getItem('sites')) || [];
+        // Retrieve or initialize sections
+        let sections = JSON.parse(localStorage.getItem('sections')) || {};
 
-        // Add site function
-        function addSite() {
-            const siteName = document.getElementById('siteName').value.trim();
-            const siteURL = document.getElementById('siteURL').value.trim();
-            
-            if (siteName && siteURL) {
-                sites.push({ name: siteName, url: siteURL });
-                localStorage.setItem('sites', JSON.stringify(sites));
-                document.getElementById('siteName').value = '';
-                document.getElementById('siteURL').value = '';
-                displaySites();
+        // Display sections and sites
+        function displaySections() {
+            const sectionsContainer = document.getElementById('sectionsContainer');
+            const sectionSelect = document.getElementById('sectionSelect');
+            sectionsContainer.innerHTML = '';
+            sectionSelect.innerHTML = '';
+
+            Object.keys(sections).forEach(section => {
+                // Create collapsible section title
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'section';
+
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'section-title';
+                titleDiv.textContent = section;
+                titleDiv.onclick = () => {
+                    const siteList = titleDiv.nextElementSibling;
+                    siteList.style.display = siteList.style.display === 'none' ? 'block' : 'none';
+                };
+
+                // Create site list container
+                const siteList = document.createElement('div');
+                siteList.className = 'site-list';
+
+                // Populate sites within section
+                sections[section].forEach((site, index) => {
+                    const siteItem = document.createElement('div');
+                    siteItem.className = 'site-item';
+
+                    const link = document.createElement('a');
+                    link.href = site.url;
+                    link.target = '_blank';
+                    link.textContent = site.name;
+                    link.className = 'site-link';
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'remove-btn';
+                    removeBtn.textContent = 'Remove';
+                    removeBtn.onclick = () => removeSite(section, index);
+
+                    siteItem.appendChild(link);
+                    siteItem.appendChild(removeBtn);
+                    siteList.appendChild(siteItem);
+                });
+
+                sectionDiv.appendChild(titleDiv);
+                sectionDiv.appendChild(siteList);
+                sectionsContainer.appendChild(sectionDiv);
+
+                // Add section to dropdown list for new links
+                const option = document.createElement('option');
+                option.value = section;
+                option.textContent = section;
+                sectionSelect.appendChild(option);
+            });
+
+            localStorage.setItem('sections', JSON.stringify(sections));
+        }
+
+        // Add new section
+        function addSection() {
+            const sectionName = document.getElementById('sectionName').value.trim();
+            if (sectionName && !sections[sectionName]) {
+                sections[sectionName] = [];
+                document.getElementById('sectionName').value = '';
+                displaySections();
             } else {
-                alert("Please enter both a name and a URL.");
+                alert('Please enter a unique section name.');
             }
         }
 
-        // Display sites
-        function displaySites() {
-            const siteList = document.getElementById('siteList');
-            siteList.innerHTML = '<h2>Favorite Sites</h2>';
+        // Add new site to selected section
+        function addSite() {
+            const siteName = document.getElementById('siteName').value.trim();
+            const siteURL = document.getElementById('siteURL').value.trim();
+            const sectionName = document.getElementById('sectionSelect').value;
 
-            sites.forEach((site, index) => {
-                const siteItem = document.createElement('div');
-                siteItem.className = 'site-item';
-
-                const link = document.createElement('a');
-                link.href = site.url;
-                link.target = '_blank';
-                link.textContent = site.name;
-                link.className = 'site-link';
-
-                const removeBtn = document.createElement('button');
-                removeBtn.className = 'remove-btn';
-                removeBtn.textContent = 'Remove';
-                removeBtn.onclick = () => removeSite(index);
-
-                siteItem.appendChild(link);
-                siteItem.appendChild(removeBtn);
-                siteList.appendChild(siteItem);
-            });
+            if (siteName && siteURL && sectionName) {
+                sections[sectionName].push({ name: siteName, url: siteURL });
+                document.getElementById('siteName').value = '';
+                document.getElementById('siteURL').value = '';
+                displaySections();
+            } else {
+                alert("Please fill out all fields.");
+            }
         }
 
-        // Remove site
-        function removeSite(index) {
-            sites.splice(index, 1);
-            localStorage.setItem('sites', JSON.stringify(sites));
-            displaySites();
+        // Remove site from a section
+        function removeSite(section, index) {
+            sections[section].splice(index, 1);
+            displaySections();
         }
 
-        // Initial display of sites
-        displaySites();
-
-        // Event listener for Add button
+        // Initial display and event listeners
         document.getElementById('addButton').addEventListener('click', addSite);
+        document.getElementById('addSectionButton').addEventListener('click', addSection);
+        displaySections();
     </script>
 </body>
 </html>
