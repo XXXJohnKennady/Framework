@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favorite Sites Manager</title>
+    <style>
+        /* Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #dcdcdc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        header {
+            width: 100%;
+            background-color: #2e2e2e;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 3px solid #444;
+        }
+        h1 {
+            color: #ffbb33;
+            font-weight: bold;
+        }
+        .container {
+            width: 90%;
+            max-width: 600px;
+            margin-top: 20px;
+        }
+        h2 {
+            color: #ffbb33;
+            margin-bottom: 10px;
+        }
+
+        /* Add Site Section */
+        .add-site {
+            background-color: #333;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        input[type="text"], input[type="url"] {
+            width: 45%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background-color: #2b2b2b;
+            color: #dcdcdc;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #ffbb33;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #1e1e1e;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #e6a30d;
+        }
+
+        /* Site List Section */
+        .site-list {
+            background-color: #333;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .site-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 8px 0;
+            background-color: #2e2e2e;
+            border-radius: 4px;
+        }
+        .site-link {
+            color: #1abc9c;
+            text-decoration: none;
+        }
+        .site-link:hover {
+            color: #16a085;
+        }
+        .remove-btn {
+            background-color: #ff4d4d;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #fff;
+        }
+        .remove-btn:hover {
+            background-color: #d43d3d;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Favorite Sites Manager</h1>
+    </header>
+    <div class="container">
+        <section class="add-site">
+            <h2>Add New Link</h2>
+            <input type="text" id="siteName" placeholder="Website Name" />
+            <input type="url" id="siteURL" placeholder="https://example.com" />
+            <button id="addButton">Add</button>
+        </section>
+        <section id="siteList" class="site-list">
+            <h2>Favorite Sites</h2>
+        </section>
+    </div>
+
+    <script>
+        // Get stored sites or start with an empty array
+        let sites = JSON.parse(localStorage.getItem('sites')) || [];
+
+        // Add site function
+        function addSite() {
+            const siteName = document.getElementById('siteName').value.trim();
+            const siteURL = document.getElementById('siteURL').value.trim();
+            
+            if (siteName && siteURL) {
+                sites.push({ name: siteName, url: siteURL });
+                localStorage.setItem('sites', JSON.stringify(sites));
+                document.getElementById('siteName').value = '';
+                document.getElementById('siteURL').value = '';
+                displaySites();
+            } else {
+                alert("Please enter both a name and a URL.");
+            }
+        }
+
+        // Display sites
+        function displaySites() {
+            const siteList = document.getElementById('siteList');
+            siteList.innerHTML = '<h2>Favorite Sites</h2>';
+
+            sites.forEach((site, index) => {
+                const siteItem = document.createElement('div');
+                siteItem.className = 'site-item';
+
+                const link = document.createElement('a');
+                link.href = site.url;
+                link.target = '_blank';
+                link.textContent = site.name;
+                link.className = 'site-link';
+
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-btn';
+                removeBtn.textContent = 'Remove';
+                removeBtn.onclick = () => removeSite(index);
+
+                siteItem.appendChild(link);
+                siteItem.appendChild(removeBtn);
+                siteList.appendChild(siteItem);
+            });
+        }
+
+        // Remove site
+        function removeSite(index) {
+            sites.splice(index, 1);
+            localStorage.setItem('sites', JSON.stringify(sites));
+            displaySites();
+        }
+
+        // Initial display of sites
+        displaySites();
+
+        // Event listener for Add button
+        document.getElementById('addButton').addEventListener('click', addSite);
+    </script>
+</body>
+</html>
