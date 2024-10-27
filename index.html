@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favorite Sites Manager</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Favorite Sites Manager</h1>
+    </header>
+    <main>
+        <section class="category">
+            <h2>Add New Link</h2>
+            <input type="text" id="siteName" placeholder="Website Name" />
+            <input type="text" id="siteURL" placeholder="https://example.com" />
+            <button onclick="addSite()">Add Site</button>
+        </section>
+        <section id="siteList" class="category">
+            <h2>Categories</h2>
+            <!-- Links will appear here -->
+        </section>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>
