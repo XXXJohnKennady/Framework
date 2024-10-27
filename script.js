@@ -1,8 +1,8 @@
 let sites = JSON.parse(localStorage.getItem('sites')) || [];
 
 function addSite() {
-    const siteName = document.getElementById('siteName').value;
-    const siteURL = document.getElementById('siteURL').value;
+    const siteName = document.getElementById('siteName').value.trim();
+    const siteURL = document.getElementById('siteURL').value.trim();
     
     if (siteName && siteURL) {
         sites.push({ name: siteName, url: siteURL });
@@ -15,23 +15,25 @@ function addSite() {
 
 function displaySites() {
     const siteList = document.getElementById('siteList');
-    siteList.innerHTML = '<h2>Categories</h2>';
+    siteList.innerHTML = '<h2>Favorite Sites</h2>';
 
     sites.forEach((site, index) => {
+        const linkWrapper = document.createElement('div');
+        linkWrapper.className = 'site-link';
+
         const link = document.createElement('a');
         link.href = site.url;
-        link.className = 'site-link';
         link.target = '_blank';
-        link.textContent = `${site.name}`;
-        
+        link.textContent = site.name;
+
         const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-btn';
         removeBtn.textContent = 'Remove';
         removeBtn.onclick = () => removeSite(index);
 
-        const wrapper = document.createElement('div');
-        wrapper.appendChild(link);
-        wrapper.appendChild(removeBtn);
-        siteList.appendChild(wrapper);
+        linkWrapper.appendChild(link);
+        linkWrapper.appendChild(removeBtn);
+        siteList.appendChild(linkWrapper);
     });
 }
 
