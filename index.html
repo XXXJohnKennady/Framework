@@ -11,16 +11,18 @@
         <h1>Favorite Sites Manager</h1>
     </header>
     <main>
-        <section class="category">
-            <h2>Add New Link</h2>
-            <input type="text" id="siteName" placeholder="Website Name" />
-            <input type="text" id="siteURL" placeholder="https://example.com" />
-            <button onclick="addSite()">Add Site</button>
-        </section>
-        <section id="siteList" class="category">
-            <h2>Categories</h2>
-            <!-- Links will appear here -->
-        </section>
+        <div class="container">
+            <section class="add-site">
+                <h2>Add New Link</h2>
+                <input type="text" id="siteName" placeholder="Website Name" />
+                <input type="url" id="siteURL" placeholder="https://example.com" />
+                <button onclick="addSite()">Add</button>
+            </section>
+            <section id="siteList" class="site-list">
+                <h2>Favorite Sites</h2>
+                <!-- Links will be displayed here -->
+            </section>
+        </div>
     </main>
     <script src="script.js"></script>
 </body>
